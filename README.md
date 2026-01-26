@@ -62,13 +62,19 @@ Game Rules
 📁 Project Structure (Simplified)
 ```
 My_Game/
+├── README.md
 ├── game.py
 ├── a_Star.py
-├── grid_level1.py
+├── Maps
+|	└── grid_level1.py
 ├── assets/
-│   └── images/
-├── Space_Game_Music.wav
-└── .venv/ #local virtual environment
+│   ├── images/
+│   │   ├── Space_Ship(Player).png
+│   │   ├── Alien(AStar_Agent).png
+│   │   └── Flag(Goal).png
+│   └── audio/
+│       └── Space_Game_Music.wav
+└── .venv/
 ```
 
 ⸻
