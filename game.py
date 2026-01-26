@@ -19,7 +19,7 @@ screen.fill((20,20,20))
 pygame.mixer.pre_init(44100, -16, 2, 2048)  # 44.1kHz, 16-bit, stereo, buffer 512
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.load("Space_Game_Music.wav")
+pygame.mixer.music.load("assets/audio/Space_Game_Music.wav")
 pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(-1)
 
@@ -28,7 +28,7 @@ font = pygame.font.SysFont(None, 60)
     Initialize
 """
 #player
-ship_img = pygame.image.load("images/Space_Ship(Player).png").convert_alpha()
+ship_img = pygame.image.load("assets/images/Space_Ship(Player).png").convert_alpha()
 ship_img = pygame.transform.scale(ship_img, (CELL, CELL))
 start = (1, 1)
 player_pos = start
@@ -36,11 +36,11 @@ player_pos = start
 #goal
 goal = (14, 14)
 goal_row, goal_col = goal
-flag_img = pygame.image.load("images/Flag(Goal).png").convert_alpha()
+flag_img = pygame.image.load("assets/images/Flag(Goal).png").convert_alpha()
 flag_img = pygame.transform.scale(flag_img, (CELL, CELL))
 
 #astar agent
-alien_img = pygame.image.load("images/Alien(AStar_Agent).png").convert_alpha()
+alien_img = pygame.image.load("assets/images/Alien(AStar_Agent).png").convert_alpha()
 alien_img = pygame.transform.scale(alien_img, (CELL, CELL))
 astar_agent = AStar()
 astar_start = (5, 5)
