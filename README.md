@@ -26,48 +26,48 @@ python game.py
 
 🎮 How to Play
 
-Move the player (spaceship) using:
-• W = up
-• A = left
-• S = down
-• D = right
+Move the player (spaceship) using:<br>
+  • W = up<br>
+  • A = left<br>
+  • S = down<br>
+  • D = right<br>
 
-Objective
-• Reach the goal flag before the A* alien agent catches you.
+Objective<br>
+• Reach the goal flag before the A* alien agent catches you.<br>
 
-Game Rules
-• The alien agent uses A* pathfinding to recalculate the shortest route toward the player in real time
-• Movement cooldowns ensure fair pacing between player and agent
-• A step counter tracks the agent’s movement cost
-• The game displays a countdown intro, win/lose states, and an end-game delay before exit
+Game Rules<br>
+• The alien agent uses A* pathfinding to recalculate the shortest route toward the player in real time<br>
+• Movement cooldowns ensure fair pacing between player and agent<br>
+• A step counter tracks the agent’s movement cost<br>
+• The game displays a countdown intro, win/lose states, and an end-game delay before exit<br>
 
 ⸻
 
 🧠 Technical Highlights
 
-• A* pathfinding implemented from scratch with:
- • Open set (priority queue)
- • Closed set
- • g_score, f_score, and path reconstruction
+• A* pathfinding implemented from scratch with:<br>
+ • Open set (priority queue)<br>
+ • Closed set<br>
+ • g_score, f_score, and path reconstruction<br>
 
-• Real-time agent pursuit with dynamic path recomputation
+• Real-time agent pursuit with dynamic path recomputation<br>
 
-• Grid-based collision and movement constraints
+• Grid-based collision and movement constraints<br>
 
-• JSON-driven level system
- • Grid layout, player spawn, agent spawn, goal, and music loaded from external JSON
- • Enables scalable multi-level expansion without modifying core game logic
+• JSON-driven level system<br>
+ • Grid layout, player spawn, agent spawn, goal, and music loaded from external JSON<br>
+ • Enables scalable multi-level expansion without modifying core game logic<br>
 
-• Modular game structure (separate logic for grid, agent, and game state)
+• Modular game structure (separate logic for grid, agent, and game state)<br>
 
-• Custom UI and assets:
- • Player spaceship sprite
- • Alien enemy sprite
- • Goal flag icon
- • Integrated background music (composed and edited by the developer)
+• Custom UI and assets:<br>
+ • Player spaceship sprite<br>
+ • Alien enemy sprite<br>
+ • Goal flag icon<br>
+ • Integrated background music (composed and edited by the developer)<br>
 
-• Relative asset paths for portability across environments
-• Virtual environment workflow for clean dependency management
+• Relative asset paths for portability across environments<br>
+• Virtual environment workflow for clean dependency management<br>
 
 ⸻
 
@@ -90,7 +90,7 @@ My_Game/
 
 📌 Notes
 
-• Designed as a playable demo rather than a full commercial game
-• The project focuses on algorithmic correctness, system structure, and interactive behavior rather than visual polish
-• Future extensions could include multi-level maps, teleport mechanics, or learning-based agents
+• Designed as a playable demo rather than a full commercial game<br>
+• The project focuses on algorithmic correctness, system structure, and interactive behavior rather than visual polish<br>
+• Future extensions could include multi-level maps, teleport mechanics, or learning-based agents<br>
 
