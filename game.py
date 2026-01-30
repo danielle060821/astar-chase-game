@@ -1,9 +1,15 @@
 import pygame
+import json
 from a_Star import AStar
-from Maps.grid_level1 import grid
+import os
 
-#import os
-#print(os.listdir("images"))
+#load level configuration
+def load_level(filename):
+    with open(filename) as f:
+        level = json.load(f)
+    return level
+
+level_data = load_level("Maps/level1.json")
 
 CELL = 50
 ROWS, COLS = 15, 15
@@ -19,22 +25,25 @@ screen.fill((20,20,20))
 pygame.mixer.pre_init(44100, -16, 2, 2048)  # 44.1kHz, 16-bit, stereo, buffer 512
 pygame.init()
 pygame.mixer.init()
-pygame.mixer.music.load("assets/audio/Space_Game_Music.wav")
-pygame.mixer.music.set_volume(0.3)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+pygame.mixer.music.load(os.path.join(BASE_DIR, level_data["music"]))
+pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
 font = pygame.font.SysFont(None, 60)
 """
     Initialize
 """
+grid = level_data["grid"]
 #player
 ship_img = pygame.image.load("assets/images/Space_Ship(Player).png").convert_alpha()
 ship_img = pygame.transform.scale(ship_img, (CELL, CELL))
-start = (1, 1)
+    
+start = tuple(level_data["player_start"])
 player_pos = start
 
 #goal
-goal = (14, 14)
+goal = tuple(level_data["goal"])
 goal_row, goal_col = goal
 flag_img = pygame.image.load("assets/images/Flag(Goal).png").convert_alpha()
 flag_img = pygame.transform.scale(flag_img, (CELL, CELL))
@@ -43,7 +52,7 @@ flag_img = pygame.transform.scale(flag_img, (CELL, CELL))
 alien_img = pygame.image.load("assets/images/Alien(AStar_Agent).png").convert_alpha()
 alien_img = pygame.transform.scale(alien_img, (CELL, CELL))
 astar_agent = AStar()
-astar_start = (5, 5)
+astar_start = tuple(level_data["astar_start"])
 astar_pos = astar_start
 cur_pos = astar_pos
 steps = 0
