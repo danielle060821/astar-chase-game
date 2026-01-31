@@ -1,9 +1,24 @@
 """
-1. heuristic(manhattan)
-2. f = g + h
-3. a star: open set(heapq get smallest f) -> need: start, goal, grid
-           closed set
+A* pathfinding (grid)
+
+Core idea:
+1) h(n): heuristic (Manhattan distance)
+2) f(n) = g(n) + h(n)
+
+Data structures:
+- open_set (heapq / priority queue):
+    stores all frontier positions to explore next, ordered by smallest f.
+    push (f, pos)
+- closed_set (set):
+    nodes that have been expanded (already popped + neighbors processed)
+- came_from (dict):
+    parent pointers for path reconstruction: came_from[child] = parent
+    recover path by backtracking from goal -> start
+- g_score (dict):
+    best known cost from start
+    used to decide whether a new route to a position(node) is better (relax) and to compute f.
 """
+
 import heapq 
 
 class AStar: 

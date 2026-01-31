@@ -1,8 +1,25 @@
 import pygame
 import json
 from a_Star import AStar
+from renderer import Renderer
+from game_state import Phase, GameState
 import os
 
+"""
+    Make sure there is a path(goal is not blocked) and the starting point of player is not wall
+"""
+def check_asserts(ROWS, COLS):
+    assert 0 <= start_row < ROWS, "Player starting y invalid"
+    assert 0 <= start_col < COLS, "Player starting x invalid"
+    assert grid[start_row][start_col] != 1, "Player starting point is wall"
+    assert 0 <= goal_row < ROWS, "Goal y invalid"
+    assert 0 <= goal_col < COLS, "Goal x invalid"
+    assert grid[goal_row][goal_col] != 1, "Goal is wall"
+    assert 0 <= astar_srow < ROWS, "Astar Agent starting y invalid"
+    assert 0 <= astar_scol < COLS, "Astar Agent starting x invalid"
+    assert grid[astar_srow][astar_scol] != 1, "Astar Agent starting point is wall"
+    assert path is not None, "No path found"
+    
 #load level configuration
 def load_level(filename):
     with open(filename) as f:
@@ -11,15 +28,7 @@ def load_level(filename):
 
 level_data = load_level("Maps/level1.json")
 
-CELL = 50
-ROWS, COLS = 15, 15
-WIDTH, HEIGHT = ROWS * CELL, COLS * CELL
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("My first grid game")
 clock = pygame.time.Clock()
-
-#background
-screen.fill((20,20,20))
 
 #background music
 pygame.mixer.pre_init(44100, -16, 2, 2048)  # 44.1kHz, 16-bit, stereo, buffer 512
@@ -30,41 +39,39 @@ pygame.mixer.music.load(os.path.join(BASE_DIR, level_data["music"]))
 pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
-font = pygame.font.SysFont(None, 60)
+
 """
     Initialize
 """
 grid = level_data["grid"]
-#player
-ship_img = pygame.image.load("assets/images/Space_Ship(Player).png").convert_alpha()
-ship_img = pygame.transform.scale(ship_img, (CELL, CELL))
+renderer = Renderer()
+ROWS, COLS = renderer.ROWS, renderer.COLS
+
+#set caption for the current level 
+#set "Space Game" as caption when level name is not found, avoid unexpected behaviour 
+level_name = level_data.get("level_name", "Space Game")
+renderer.set_caption(level_name) 
     
+#player    
 start = tuple(level_data["player_start"])
 player_pos = start
 
 #goal
 goal = tuple(level_data["goal"])
 goal_row, goal_col = goal
-flag_img = pygame.image.load("assets/images/Flag(Goal).png").convert_alpha()
-flag_img = pygame.transform.scale(flag_img, (CELL, CELL))
 
 #astar agent
-alien_img = pygame.image.load("assets/images/Alien(AStar_Agent).png").convert_alpha()
-alien_img = pygame.transform.scale(alien_img, (CELL, CELL))
 astar_agent = AStar()
 astar_start = tuple(level_data["astar_start"])
 astar_pos = astar_start
 cur_pos = astar_pos
 steps = 0
 
-running = True
 INITIAL_COUNTDOWN_MS = 3000
 init_buffer_time = 4000
-buffer_done = False
-finished = False
-finish_time = None
 start_time = pygame.time.get_ticks()
 over_text = None
+over_color = None
 
 PLAYER_COOLDOWN_MS = 300
 AGENT_COOLDOWN_MS = 290
@@ -74,54 +81,11 @@ astar_agent_last_move = 0
 #get path
 path = astar_agent.get_shortest_path(grid, start, goal)
 
-"""
-    Make sure there is a path(goal is not blocked) and the starting point of player is not wall
-"""
+
 start_row, start_col = start
 astar_srow, astar_scol = astar_start
-assert 0 <= start_row < ROWS, "Player starting y invalid"
-assert 0 <= start_col < COLS, "Player starting x invalid"
-assert grid[start_row][start_col] != 1, "Player starting point is wall"
-assert 0 <= goal_row < ROWS, "Goal y invalid"
-assert 0 <= goal_col < COLS, "Goal x invalid"
-assert grid[goal_row][goal_col] != 1, "Goal is wall"
-assert 0 <= astar_srow < ROWS, "Astar Agent starting y invalid"
-assert 0 <= astar_scol < COLS, "Astar Agent starting x invalid"
-assert grid[astar_srow][astar_scol] != 1, "Astar Agent starting point is wall"
-assert path is not None, "No path found"
 
-#draw goal and grid(draw goal after girid, or will be covered)
-def draw_static_world() -> None:
-    #draw grid
-    for r in range(ROWS):
-            for c in range(COLS):
-                color = (23, 16, 43) if grid[r][c] == 1 else (217, 211, 253)
-                pygame.draw.rect(
-                    screen,
-                    color,
-                    (CELL * c, CELL * r, CELL, CELL),
-                    0
-                )                   
-    #draw goal(grids have length!!)(be careful -- x, y and row, col are opposite)
-    gx = goal_col * CELL + CELL // 2
-    gy = goal_row * CELL + CELL // 2
-    rect = flag_img.get_rect(center = (gx, gy))
-    screen.blit(flag_img, rect)
-            
-#draw player(put player in the middle of a grid)
-def draw_player(player_row, player_col) -> None:
-    px = player_col * CELL + CELL // 2 
-    py = player_row * CELL + CELL // 2 
-    #center
-    rect = ship_img.get_rect(center = (px, py))
-    screen.blit(ship_img, rect)
-    
-#draw A* agent
-def draw_astar_agent(astar_row, astar_col) -> None:
-    astar_x = astar_col * CELL + CELL // 2 
-    astar_y = astar_row * CELL + CELL // 2 
-    rect = alien_img.get_rect(center = (astar_x, astar_y))
-    screen.blit(alien_img, rect)
+check_asserts(ROWS, COLS)
 
 """ 
     Player is manual
@@ -193,83 +157,77 @@ def player_wins(player_pos, astar_pos) -> bool:
 """
     Game loop
 """ 
-     
-while(running):
+state = GameState()
+state.set_phase(Phase.COUNTDOWN)
+while state.running:
     #60 frames/s
     clock.tick(60)
         
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
-            
+            state.running = False
+               
     #cover the previous step
-    screen.fill((20, 20, 20)) 
+    renderer.draw_background() 
+    
+    #display steps    
+    renderer.display_steps(steps)
     
     #buffer time(4s)before game starts 
-    if not buffer_done:
-        draw_static_world()
-        draw_player(start_row, start_col)
-        draw_astar_agent(astar_srow, astar_scol)
-        
+    if state.phase == Phase.COUNTDOWN:
+        renderer.draw_static_world(grid, goal_row, goal_col)
+        renderer.draw_player(start_row, start_col)
+        renderer.draw_astar_agent(astar_srow, astar_scol)
         now = pygame.time.get_ticks()
-        elapsed = now - start_time
+        elapsed = now - state.phase_start_time
         if elapsed < INITIAL_COUNTDOWN_MS:
             #count down: 3 -> 2 -> 1
             remaining = (INITIAL_COUNTDOWN_MS - elapsed + 999) // 1000
-            wait_text = font.render(f"Get Ready... {remaining}", True, (226, 83, 0))
-            screen.blit(wait_text, ((WIDTH // 2 - 80), HEIGHT // 2 - 40))
+            renderer.set_countdown(remaining)
         elif elapsed < init_buffer_time:
-            wait_text = font.render("GO!", True, (226, 83, 0))
-            screen.blit(wait_text, ((WIDTH // 2 - 80), HEIGHT // 2 - 40))
-        if(now - start_time > init_buffer_time):
-            buffer_done = True
-    
-    else:
-        draw_static_world()
-        
-        #only display motion when the game is not finished
-        if not finished:      
-            #draw player
-            player_pos, player_last_move = player_action(player_pos, player_last_move)
-            player_row, player_col = player_pos
-            draw_player(player_row, player_col)
+            renderer.game_start_text()
+        else:
+            state.set_phase(Phase.PLAYING)
             
-            #draw astar agent
-            astar_pos, steps, astar_agent_last_move = astar_agent_action(astar_pos, player_pos, steps, astar_agent_last_move)
-            astar_row, astar_col = astar_pos
-            draw_astar_agent(astar_row, astar_col)
+    
+    elif state.phase == Phase.PLAYING:
+        renderer.draw_static_world(grid, goal_row, goal_col)
+            
+        #draw player
+        player_pos, player_last_move = player_action(player_pos, player_last_move)
+        player_row, player_col = player_pos
+        renderer.draw_player(player_row, player_col)
+            
+        #draw astar agent
+        astar_pos, steps, astar_agent_last_move = astar_agent_action(astar_pos, player_pos, steps, astar_agent_last_move)
+        astar_row, astar_col = astar_pos
+        renderer.draw_astar_agent(astar_row, astar_col)
         
-        #astar agent wins
+        #astar agent wins(player lost)
         if astar_caught_player(player_pos, astar_pos):
-            finished = True
+            state.set_phase(Phase.FINISHED)
             finish_time = pygame.time.get_ticks()
-            over_text = font.render(f"You Lost!", True, (255, 0, 0))
-            rect = over_text.get_rect(center = (WIDTH // 2, HEIGHT // 2))
-            screen.blit(over_text, rect)
+            over_text = "You Lost!"
+            over_color = (255, 0, 0)
             
         #player wins
         elif player_wins(player_pos, astar_pos):
-            finished = True
+            state.set_phase(Phase.FINISHED)
             finish_time = pygame.time.get_ticks()
-            over_text = font.render(f"You Won!", True, (23, 199, 29))
-            rect = over_text.get_rect(center = (WIDTH // 2, HEIGHT // 2))
-            screen.blit(over_text, rect)
-        
-    #display steps    
-    step_text = font.render(f"Alien Steps: {steps}", True, (47, 1, 108))
-    screen.blit(step_text, (10, 10))
+            over_text = "You Win!"
+            over_color = (23, 199, 29)
     
     #delay 3 seconds after finish
-    if finished:
+    elif state.phase == Phase.FINISHED:
+        renderer.draw_static_world(grid, goal_row, goal_col)
         #redraw player to prevent being covered by goal
-        draw_player(player_row, player_col)
-        draw_astar_agent(astar_row, astar_col)
-        rect = over_text.get_rect(center = (WIDTH // 2, HEIGHT // 2))
-        screen.blit(over_text, rect)
+        renderer.draw_player(player_row, player_col)
+        renderer.draw_astar_agent(astar_row, astar_col)
+        renderer.over_text(over_text, over_color)
         
-        elapsed = pygame.time.get_ticks() - finish_time
+        elapsed = pygame.time.get_ticks() - state.phase_start_time
         if elapsed > 3000:
-            running = False
+            state.running = False
         
     pygame.display.flip()
 
