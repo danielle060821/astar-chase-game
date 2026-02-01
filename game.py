@@ -1,25 +1,12 @@
 import pygame
 import json
-from a_Star import AStar
 from renderer import Renderer
 from game_state import Phase, GameState
-import os
+from agents import AStarAgent
+from asserts import check_asserts
+from rules import Rules, GameResult
+from audio import play_music
 
-"""
-    Make sure there is a path(goal is not blocked) and the starting point of player is not wall
-"""
-def check_asserts(ROWS, COLS):
-    assert 0 <= start_row < ROWS, "Player starting y invalid"
-    assert 0 <= start_col < COLS, "Player starting x invalid"
-    assert grid[start_row][start_col] != 1, "Player starting point is wall"
-    assert 0 <= goal_row < ROWS, "Goal y invalid"
-    assert 0 <= goal_col < COLS, "Goal x invalid"
-    assert grid[goal_row][goal_col] != 1, "Goal is wall"
-    assert 0 <= astar_srow < ROWS, "Astar Agent starting y invalid"
-    assert 0 <= astar_scol < COLS, "Astar Agent starting x invalid"
-    assert grid[astar_srow][astar_scol] != 1, "Astar Agent starting point is wall"
-    assert path is not None, "No path found"
-    
 #load level configuration
 def load_level(filename):
     with open(filename) as f:
@@ -28,21 +15,11 @@ def load_level(filename):
 
 level_data = load_level("Maps/level1.json")
 
-clock = pygame.time.Clock()
-
-#background music
-pygame.mixer.pre_init(44100, -16, 2, 2048)  # 44.1kHz, 16-bit, stereo, buffer 512
-pygame.init()
-pygame.mixer.init()
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-pygame.mixer.music.load(os.path.join(BASE_DIR, level_data["music"]))
-pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(-1)
-
-
 """
     Initialize
 """
+pygame.init()
+clock = pygame.time.Clock()
 grid = level_data["grid"]
 renderer = Renderer()
 ROWS, COLS = renderer.ROWS, renderer.COLS
@@ -51,41 +28,38 @@ ROWS, COLS = renderer.ROWS, renderer.COLS
 #set "Space Game" as caption when level name is not found, avoid unexpected behaviour 
 level_name = level_data.get("level_name", "Space Game")
 renderer.set_caption(level_name) 
-    
+
+#background music
+play_music(level_data["music"])   
+
 #player    
 start = tuple(level_data["player_start"])
 player_pos = start
 
 #goal
 goal = tuple(level_data["goal"])
-goal_row, goal_col = goal
 
 #astar agent
-astar_agent = AStar()
 astar_start = tuple(level_data["astar_start"])
-astar_pos = astar_start
-cur_pos = astar_pos
-steps = 0
+astar_agent = AStarAgent(astar_start)
+
+sr, sc = start
+gr, gc = goal
+asr,asc = astar_start
+
+#check rules
+rules = Rules(goal)
 
 INITIAL_COUNTDOWN_MS = 3000
-init_buffer_time = 4000
-start_time = pygame.time.get_ticks()
+GO_MS = 1000
 over_text = None
 over_color = None
 
 PLAYER_COOLDOWN_MS = 300
-AGENT_COOLDOWN_MS = 290
 player_last_move = 0
-astar_agent_last_move = 0
 
-#get path
-path = astar_agent.get_shortest_path(grid, start, goal)
-
-
-start_row, start_col = start
-astar_srow, astar_scol = astar_start
-
-check_asserts(ROWS, COLS)
+#avoid potential bugs
+check_asserts(ROWS, COLS, grid, start, goal, astar_start)
 
 """ 
     Player is manual
@@ -99,60 +73,27 @@ def player_action(player_pos, player_last_move):
        
     #Player controlling keys
     keys = pygame.key.get_pressed()
-    r, c = player_pos
-    new_r, new_c = r, c
+    pr, pc = player_pos
+    new_pr, new_pc = pr, pc
     if keys[pygame.K_w]:
-            new_r -= 1
+            new_pr -= 1
     elif keys[pygame.K_s]:
-            new_r += 1
+            new_pr += 1
     elif keys[pygame.K_a]:
-            new_c -= 1
+            new_pc -= 1
     elif keys[pygame.K_d]:
-            new_c += 1
+            new_pc += 1
     else:
         #stay(did not press any key)
         return player_pos, player_last_move
             
     #if not wall, can go through
-    if 0 <= new_r < ROWS and 0 <= new_c < COLS:
-        if grid[new_r][new_c] == 0:
+    if 0 <= new_pr < ROWS and 0 <= new_pc < COLS:
+        if grid[new_pr][new_pc] == 0:
             #move
-            return(new_r, new_c), now
+            return(new_pr, new_pc), now
     #at wall or grid boundary(can't move)       
     return player_pos, player_last_move
-
-"""
-    Astar agent
-"""
-def astar_agent_action(astar_pos, player_pos, steps,astar_agent_last_move):
-    #Astar agent can only move 1 step per AGENT_COOLDOWN_MS // 1000s
-    now = pygame.time.get_ticks()
-    if now - astar_agent_last_move <= AGENT_COOLDOWN_MS:
-        return astar_pos, steps, astar_agent_last_move
-    
-    astar_path = astar_agent.get_shortest_path(grid, astar_pos, player_pos)
-    #only walk one step at a time(0 is start, 1 is the next step because i wrote came_from = {Start: None})
-    #steps that have been used
-    #if agent is only 1 step away from player or already chased player(or is path does not exist)
-    if not astar_path or len(astar_path) < 2:
-        return astar_pos, steps, astar_agent_last_move     
-    if astar_path[1] != astar_pos:
-        steps += 1
-        astar_pos = astar_path[1]
-    return astar_pos, steps, now
-
-"""
-    Game Rule
-"""
-def astar_caught_player(player_pos, astar_pos) -> bool:
-    if astar_pos == player_pos and player_pos != goal:
-        return True
-    return False
- 
-def player_wins(player_pos, astar_pos) -> bool:
-    if player_pos == goal and astar_pos != player_pos:
-        return True
-    return False
                       
 """
     Game loop
@@ -171,58 +112,58 @@ while state.running:
     renderer.draw_background() 
     
     #display steps    
-    renderer.display_steps(steps)
+    renderer.display_steps(astar_agent.steps)
     
     #buffer time(4s)before game starts 
     if state.phase == Phase.COUNTDOWN:
-        renderer.draw_static_world(grid, goal_row, goal_col)
-        renderer.draw_player(start_row, start_col)
-        renderer.draw_astar_agent(astar_srow, astar_scol)
+        renderer.draw_static_world(grid, gr, gc)
+        renderer.draw_player(sr, sc)
+        renderer.draw_astar_agent(asr,asc)
         now = pygame.time.get_ticks()
         elapsed = now - state.phase_start_time
         if elapsed < INITIAL_COUNTDOWN_MS:
             #count down: 3 -> 2 -> 1
             remaining = (INITIAL_COUNTDOWN_MS - elapsed + 999) // 1000
             renderer.set_countdown(remaining)
-        elif elapsed < init_buffer_time:
+        elif elapsed - INITIAL_COUNTDOWN_MS < GO_MS:
             renderer.game_start_text()
         else:
-            state.set_phase(Phase.PLAYING)
-            
+            state.set_phase(Phase.PLAYING)            
     
+    #game in process
     elif state.phase == Phase.PLAYING:
-        renderer.draw_static_world(grid, goal_row, goal_col)
+        renderer.draw_static_world(grid, gr, gc)
             
         #draw player
         player_pos, player_last_move = player_action(player_pos, player_last_move)
-        player_row, player_col = player_pos
-        renderer.draw_player(player_row, player_col)
-            
-        #draw astar agent
-        astar_pos, steps, astar_agent_last_move = astar_agent_action(astar_pos, player_pos, steps, astar_agent_last_move)
-        astar_row, astar_col = astar_pos
-        renderer.draw_astar_agent(astar_row, astar_col)
-        
-        #astar agent wins(player lost)
-        if astar_caught_player(player_pos, astar_pos):
+        pr, pc = player_pos
+        renderer.draw_player(pr, pc)
+        now = pygame.time.get_ticks()   
+        #draw astar agent(do not need to access internal data(ex. steps, last_move))
+        astar_pos, _, _ = astar_agent.update(grid, player_pos, now)
+        ar, ac = astar_pos
+        renderer.draw_astar_agent(ar, ac)
+        result = rules.evaluate(player_pos, astar_pos)
+        #player lost(game loop does not care about why lose. lose is lose)
+        if result == GameResult.LOSE:
             state.set_phase(Phase.FINISHED)
-            finish_time = pygame.time.get_ticks()
             over_text = "You Lost!"
             over_color = (255, 0, 0)
             
         #player wins
-        elif player_wins(player_pos, astar_pos):
+        elif result == GameResult.WIN:
             state.set_phase(Phase.FINISHED)
-            finish_time = pygame.time.get_ticks()
             over_text = "You Win!"
             over_color = (23, 199, 29)
     
     #delay 3 seconds after finish
     elif state.phase == Phase.FINISHED:
-        renderer.draw_static_world(grid, goal_row, goal_col)
+        pr, pc = player_pos
+        ar,ac = astar_agent.pos
+        renderer.draw_static_world(grid, gr, gc)
         #redraw player to prevent being covered by goal
-        renderer.draw_player(player_row, player_col)
-        renderer.draw_astar_agent(astar_row, astar_col)
+        renderer.draw_player(pr, pc)
+        renderer.draw_astar_agent(ar, ac)
         renderer.over_text(over_text, over_color)
         
         elapsed = pygame.time.get_ticks() - state.phase_start_time

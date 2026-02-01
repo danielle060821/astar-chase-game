@@ -1,12 +1,18 @@
 import pygame
-from enum import Enum
+from enum import Enum, auto
 
+#used auto instead of numbers to avoid unexpected confusion since there are multiple classes.
+#numbers are also useless in this case.
 class Phase(Enum):
-    INIT = 0
-    COUNTDOWN = 1
-    PLAYING = 2
-    FINISHED = 3
-
+    INIT = auto()
+    COUNTDOWN = auto()
+    PLAYING = auto()
+    FINISHED = auto()
+class GameResult():
+    NONE = auto()
+    WIN = auto()
+    LOSE = auto()
+    
 class GameState:
     def __init__(self):
         self.running = True
