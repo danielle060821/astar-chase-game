@@ -6,7 +6,7 @@ The project explores pathfinding algorithms, real-time agent behavior, modular g
 
 This project evolved from a single-file prototype into a multi-module, extensible game framework, designed to support future mechanics such as additional agents, new rules, and multiple levels.
 
-🎥 **30s Gameplay Demo (A*-driven agent):**<br>
+🎥 30s Gameplay Demo (A*-driven agent):<br>
 Shows two runs: an intentional failure and a successful escape. Although the developer knows the map well, a single misstep is enough for the A* agent to catch the player.<br>
 Link: https://youtube.com/shorts/KEZ5PRIL9xc?si=0C5W6CFBQtQ1kCa9<br>
 
