@@ -6,7 +6,7 @@ The project explores pathfinding algorithms, real-time agent behavior, modular g
 
 This project evolved from a single-file prototype into a multi-module, extensible game framework, designed to support future mechanics such as additional agents, new rules, and multiple levels.
 
-🎥 **Demo (30s video):**https://youtube.com/shorts/KEZ5PRIL9xc?si=0C5W6CFBQtQ1kCa9<br>
+🎥 **Demo (30s video):** https://youtube.com/shorts/KEZ5PRIL9xc?si=0C5W6CFBQtQ1kCa9<br>
 
 ⸻
 
