@@ -6,7 +6,9 @@ The project explores pathfinding algorithms, real-time agent behavior, modular g
 
 This project evolved from a single-file prototype into a multi-module, extensible game framework, designed to support future mechanics such as additional agents, new rules, and multiple levels.
 
-🎥 **Demo (30s video):** https://youtube.com/shorts/KEZ5PRIL9xc?si=0C5W6CFBQtQ1kCa9<br>
+🎥 **30s Gameplay Demo (A*-driven agent):**<br>
+Shows two runs: an intentional failure and a successful escape. Although the developer knows the map well, a single misstep is enough for the A* agent to catch the player.<br>
+Link: https://youtube.com/shorts/KEZ5PRIL9xc?si=0C5W6CFBQtQ1kCa9<br>
 
 ⸻
 
@@ -46,6 +48,7 @@ Game Rules<br>
 • Independent movement cooldowns ensure fair pacing between player and agent<br>
 • A step counter tracks the agent’s movement cost<br>
 • The game features a countdown intro, clear win/lose conditions, and a timed end-game state<br>
+• Automatically exit 3s after the game is over(Player can also press the red "x" button to turn off the program anytime)<br>
 
 ⸻
 
@@ -123,4 +126,4 @@ My_Game/
 • Designed as a playable demo and engineering exploration, not a full commercial game<br>
 • Emphasis is placed on algorithmic correctness, system structure, and extensibility rather than visual polish<br>
 • The codebase was intentionally refactored into multiple modules to support long-term scalability<br>
-• Future extensions may include additional levels, teleport mechanics, multiple enemy types, or learning-based agents<br>
+• Future extensions may include learning-based agents (RL / imitation) evaluated in the same environment<br>
