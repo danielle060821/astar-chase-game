@@ -6,6 +6,8 @@ The project explores pathfinding algorithms, real-time agent behavior, modular g
 
 This project evolved from a single-file prototype into a multi-module, extensible game framework, designed to support future mechanics such as additional agents, new rules, and multiple levels.
 
+🎥 **Demo (30s video):** https://youtube.com/shorts/EWbfzQdno_0?si=YfP-UEuOFzc_7Ox5<br>
+
 ⸻
 
 🚀 How to Run the Game<br>
@@ -80,7 +82,7 @@ Game Architecture<br>
  • audio — background music management<br>
  • asserts — level validation and safety checks<br>
 
-UI & Assets<br>
+UI & Assets(Procreate, Garage Band)<br>
 
 • Custom sprites:<br>
  • Player spaceship<br>
