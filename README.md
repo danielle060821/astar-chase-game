@@ -10,6 +10,9 @@ This project evolved from a single-file prototype into a multi-module, extensibl
 Shows two runs: an intentional failure and a successful escape. Although the developer knows the map well, a single misstep is enough for the A* agent to catch the player.<br>
 Link: https://youtube.com/shorts/KEZ5PRIL9xc?si=0C5W6CFBQtQ1kCa9<br>
 
+Currently developing:<br>
+- Behavior Cloning agent (in bc-agent branch)<br>
+
 ⸻
 
 🚀 How to Run the Game<br>
