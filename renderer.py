@@ -3,7 +3,7 @@ import pygame
 class Renderer:
     
     def __init__(self):
-        self.CELL = 50
+        self.CELL = 40
         self.ROWS, self.COLS = 15, 15
         self.WIDTH, self.HEIGHT = self.ROWS * self.CELL, self.COLS * self.CELL
         #background

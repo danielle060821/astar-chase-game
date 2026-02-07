@@ -1,7 +1,8 @@
 {
     "level_name": "Level 1 - Maze",
-    "player_start": [1, 1],
+    "player_start": [1, 2],
     "astar_start": [5, 5],
+    "bc_start": [1, 1],
     "goal": [14, 14],
     "grid": [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
