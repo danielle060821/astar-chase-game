@@ -1,20 +1,18 @@
 
 # Grid-Based Navigation Simulator
 
-A Python-based navigation simulator featuring both a real-time interactive game and a hybrid navigation agent that combines learning (Behavioral Cloning) and algorithmic planning (A*).
+A Python navigation simulator featuring a real-time interactive game and a hybrid agent combining imitation learning (behavioral cloning) with A* pathfinding.
 
 ## Demo
 ▶️ [🎮 Game Mode(Watch Demo on YouTube)](https://youtube.com/shorts/hbPkSqb0V5U?si=l3zwWbpXMcCj4Su4)
 
 ▶️ [🧪 Hybrid Navigation Mode(Watch Demo on YouTube)](https://youtube.com/shorts/kqObUgraAOg?si=0PpGFdVwAle4QEF6)
 
-## Motivation
+## Overview
 
-A* pathfinding finds the optimal path, but it requires complete map information — it needs to “see” the entire grid before planning. In real-world robotics, however, maintaining an accurate global map is often difficult, while local observations are much easier to obtain.
+An agent trained by imitation learning — learning to copy the behavior of an optimal pathfinding algorithm (A*) — often performs well in familiar situations, but small prediction errors can accumulate over time, sometimes causing it to oscillate or get stuck rather than reaching the goal.
 
-This project explores a hybrid navigation approach where a learned policy handles most navigation using only local observations, while A* is used only as a fallback when needed. The goal is not to replace A* completely, but to reduce how often the system depends on a global planner while still maintaining reliable navigation.
-
-In practice, a policy trained purely by imitation tends to drift: small mistakes push it into situations it never saw during training, and those mistakes compound over time. This project uses A* as a safety net for exactly those moments, rather than relying on it for every decision.
+This project explores whether such failures can be handled by occasional intervention from A* itself, instead of expecting the learned agent to solve every situation on its own. The learned agent handles most decisions, while A* steps in only as a fallback when it shows signs of getting stuck.
 
 ## Hybrid Navigation Architecture
 
@@ -36,7 +34,7 @@ In practice, a policy trained purely by imitation tends to drift: small mistakes
               Continue Navigation
 ```
 
-The learned policy handles routine navigation using only local observations, while the expert planner is invoked only when recovery is needed.
+The system monitors the agent’s recent movement pattern; if it detects the agent oscillating for 6 consecutive steps, A* takes over for 2 steps to break the loop before returning control to the learned policy.
 
 ## Modes
 
@@ -55,12 +53,12 @@ Evaluated on 500 randomly generated valid maps with 20% wall density. All method
 |Method           |Success Rate|Avg Steps|Timeouts|Expert Steps|
 |-----------------|------------|---------|--------|------------|
 |A* (Expert)      |100%        |11.19    |0       |100%        |
-|BC (without STAY)|66%         |10.80    |172     |0%          |
+|Learned Policy|66%         |10.80    |172     |0%          |
 |Hybrid Agent     |87%         |12.73    |65      |4.1%        |
 
 The pure learned policy performed well most of the time, but small errors would occasionally push it into unfamiliar situations it hadn’t been trained to handle — and once slightly off track, it had no way to recover. This showed up as oscillation near obstacles, causing navigation failures. To improve robustness, a 2-step A* fallback was triggered after the policy remained stuck for 6 consecutive steps. This increased the success rate from 66% to 87%.
 
-Note: A* has access to the full map throughout navigation, while the learned policy only receives local observations. The hybrid system calls the expert planner only when recovery is needed, allowing the learned policy to make the vast majority (96%) of navigation decisions independently.
+Note: A* has access to the full map, while the learned agent makes decisions using only its 6-dimensional local observation. The hybrid agent handled 96% of navigation steps without A* intervention.
 
 ## Requirements
 
